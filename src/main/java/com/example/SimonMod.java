@@ -2,18 +2,12 @@ package com.example;
 
 import net.fabricmc.api.ModInitializer;
 
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.registry.FabricBrewingRecipeRegistryBuilder;
+import net.minecraft.potion.Potions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.function.Function;
-
-public class ExampleMod implements ModInitializer {
+public class SimonMod implements ModInitializer {
 	public static final String MOD_ID = "simon_mod";
 
 	// This logger is used to write text to the console and the log file.
@@ -27,8 +21,14 @@ public class ExampleMod implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-        // Initialize the modded items!
+        // Initialize the modded items
         ModItems.initialize();
+
+        // Initialize the modded effects
+        ModEffects.registerEffects();
+
+        // Initialize the modded potions
+        ModPotions.registerPotions();
 
 		LOGGER.info("Hello, World!");
 	}

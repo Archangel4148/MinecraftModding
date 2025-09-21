@@ -1,5 +1,13 @@
 
 {
   "item.simon_mod.suspicious_substance": "Suspicious Substance",
-  "item.simon_mod.skin_ingot": "SKIN Ingot"
+  "item.simon_mod.skin_ingot": "SKIN Ingot",
+
+  "item.minecraft.potion.effect.suspicious_potion": "Suspicious Potion",
+  "item.minecraft.splash_potion.effect.suspicious_potion": "Splash Suspicious Potion",
+  "item.minecraft.lingering_potion.effect.suspicious_potion": "Lingering Suspicious Potion",
+
+  "effect.simon_mod.suspicious": "Suspicious",
+  "death.attack.suspicious": "%1$s succumbed to suspicious circumstances",
+  "death.attack.suspicious.player": "%1$s was suspiciously ended by %2$s"
 }
