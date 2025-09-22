@@ -1,16 +1,17 @@
 {
-	"required": true,
-	"package": "com.example.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-      "ExampleMixin",
-      "MobEntityMixin",
-      "FleeEntityGoalAccessor"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
+  "required": true,
+  "package": "com.example.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ExampleMixin",
+    "FleeEntityGoalAccessor",
+    "LivingEntityMixin",
+    "MobEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
 	}
 }

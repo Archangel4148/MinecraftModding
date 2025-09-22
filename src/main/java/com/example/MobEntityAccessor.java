@@ -1,12 +1,15 @@
 package com.example;
 
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
+import net.minecraft.entity.ai.goal.FleeEntityGoal;
 
 public interface MobEntityAccessor {
-    boolean hasFleeGoalFor(LivingEntity entity);
+    // Add a flee goal targeting a specific entity
+    void addFleeGoal(FleeEntityGoal<?> goal, int priority);
 
-    void addFleeGoalFor(PathAwareEntity mob, LivingEntity target, float radius, double slowSpeed, double fastSpeed);
-
+    // Remove all flee goals that target a specific entity
     void removeFleeGoalsFor(LivingEntity entity);
+
+    // Tick all the current goals
+    void tickAllGoals();
 }

@@ -1,6 +1,5 @@
 package com.example;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
@@ -10,11 +9,13 @@ import net.minecraft.server.world.ServerWorld;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class SuspiciousEffect extends StatusEffect {
 
-    // Track all mobs modified by this effect and their original targets
-    private final Map<MobEntity, LivingEntity> affectedMobs = new IdentityHashMap<>();
+    // Track mobs per affected entity
+    private static final Map<LivingEntity, Map<MobEntity, LivingEntity>> allAffected =
+            new WeakHashMap<>();
 
     protected SuspiciousEffect() {
         super(StatusEffectCategory.HARMFUL, 0xa020f0);
@@ -29,44 +30,61 @@ public class SuspiciousEffect extends StatusEffect {
     public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
         if (entity.age % 10 != 0) return super.applyUpdateEffect(world, entity, amplifier);
 
+        Map<MobEntity, LivingEntity> affectedMobs =
+                allAffected.computeIfAbsent(entity, e -> new IdentityHashMap<>());
+
         double radius = 16.0;
         for (LivingEntity mobEntity : world.getEntitiesByClass(
                 LivingEntity.class, entity.getBoundingBox().expand(radius), e -> e != entity)) {
 
             if (!(mobEntity instanceof PathAwareEntity pathAwareMob)) continue;
 
-            // Save original target if not already saved
-            affectedMobs.putIfAbsent(pathAwareMob, pathAwareMob.getTarget());
+            // Skip mobs already affected by this entity
+            if (affectedMobs.containsKey(pathAwareMob)) continue;
 
-            // Clear target if attacking the player
-            if (pathAwareMob.getTarget() == entity) {
-                pathAwareMob.setTarget(null);
-            }
+            // Save original target (null is fine)
+            affectedMobs.put(pathAwareMob, pathAwareMob.getTarget());
 
-            // Only add flee goal if mixin accessor is available
+            // Add flee goal if mob supports it
             if (pathAwareMob instanceof MobEntityAccessor accessor) {
-                accessor.addFleeGoalFor(pathAwareMob, entity, (float) radius, 1.0, 1.5);
+                FleeSpecificEntityGoal fleeGoal =
+                        new FleeSpecificEntityGoal(pathAwareMob, entity, (float) radius, 1.0, 1.5);
+                accessor.addFleeGoal(fleeGoal, 1);
             }
         }
 
         return super.applyUpdateEffect(world, entity, amplifier);
     }
 
-    @Override
-    public void onEntityRemoval(ServerWorld world, LivingEntity entity, int amplifier, Entity.RemovalReason reason) {
-        SimonMod.LOGGER.info("ENTITY REMOVAL TRIGGER");
-        super.onEntityRemoval(world, entity, amplifier, reason);
-        // Reset all affected mobs
+    public static void cleanup(LivingEntity entity) {
+        if (!(entity.getWorld() instanceof ServerWorld world)) return;
+
+        Map<MobEntity, LivingEntity> affectedMobs = allAffected.remove(entity);
+        if (affectedMobs == null) return;
+
         for (Map.Entry<MobEntity, LivingEntity> entry : affectedMobs.entrySet()) {
             MobEntity mob = entry.getKey();
             LivingEntity originalTarget = entry.getValue();
 
+            if (mob == null || !mob.isAlive()) continue;
+
             if (mob instanceof MobEntityAccessor accessor) {
+                // Remove flee goals safely
                 accessor.removeFleeGoalsFor(entity);
             }
 
-            mob.setTarget(originalTarget);
+            if (mob instanceof PathAwareEntity pathAware) {
+                // Stop navigation safely
+                pathAware.getNavigation().stop();
+            }
+
+            // Restore original target if still alive in same world
+            if (originalTarget != null && originalTarget.isAlive()
+                    && originalTarget.getWorld() == mob.getWorld()) {
+                mob.setTarget(originalTarget);
+            } else {
+                mob.setTarget(null);
+            }
         }
-        affectedMobs.clear();
     }
 }
