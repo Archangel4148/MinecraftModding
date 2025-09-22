@@ -3,7 +3,9 @@
 	"package": "com.example.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+      "ExampleMixin",
+      "MobEntityMixin",
+      "FleeEntityGoalAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
